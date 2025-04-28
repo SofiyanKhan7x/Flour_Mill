@@ -9,7 +9,7 @@ COPY package*.json ./
 RUN npm install
 
 # Copy the rest of the frontend code from the UI folder
-COPY ./UI ./
+COPY ./UI ./UI
 
 # Build the React app
 RUN npm run build
