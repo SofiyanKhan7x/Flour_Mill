@@ -1,27 +1,22 @@
-# Stage 1: Build the React app
-FROM node:16 AS build
+# Use a base image with Node.js
+FROM node:18 AS frontend
 
-# Set the working directory for your React app
+# Set working directory inside the container
 WORKDIR /app
 
 # Install dependencies
-COPY package*.json ./
+COPY ./UI/package*.json ./
 RUN npm install
 
-# Copy the rest of the frontend code from the UI folder
+# Copy the entire UI folder content after installing dependencies
 COPY ./UI ./UI
 
-# Build the React app
+# Install polyfills if necessary (for crypto)
+RUN npm install crypto-browserify
+
+# Build the frontend app
 RUN npm run build
 
-# Stage 2: Serve the React app with Nginx
+# Use Nginx to serve the app
 FROM nginx:alpine
-
-# Copy the built React app from the build stage
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Expose port 80 for the frontend
-EXPOSE 80
-
-# Use the default Nginx config to serve the app
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=frontend /app/dist /usr/share/nginx/html
