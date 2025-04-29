@@ -1,37 +1,14 @@
-# Use a base image with OpenJDK 17
-FROM openjdk:17-jdk-slim as build
+# Use a base image with Java 17
+FROM openjdk:17-jdk-alpine
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the Maven wrapper and pom.xml
-COPY mvnw . 
-COPY mvnw.cmd .
-COPY pom.xml .
+# Copy the JAR file into the container
+COPY target/*.jar app.jar
 
-# Ensure the Maven wrapper is executable
-RUN chmod +x mvnw
-
-# Download Maven dependencies (this will cache them if unchanged)
-RUN ./mvnw dependency:go-offline
-
-# Copy the source code into the container
-COPY src ./src
-
-# Package the app into a JAR file using Maven
-RUN ./mvnw clean package -DskipTests
-
-# Create a smaller runtime image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory for the runtime image
-WORKDIR /app
-
-# Copy the JAR file from the build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose port 8000 for the Spring Boot app
+# Expose the port the app runs on
 EXPOSE 8000
 
-# Run the JAR file
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
